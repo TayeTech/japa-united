@@ -1,119 +1,125 @@
 // src/components/Results.jsx
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import SchoolResults from './SchoolResults'
 
 const recommendations = {
   High: [
-    'Canada: Express Entry Program',
-    'Germany: Skilled Worker Visa',
-    'Australia: General Skilled Migration',
+    'Canada: Express Entry',
+    'Germany: Blue Card',
+    'Australia: Skilled Independent Visa',
   ],
   Medium: [
-    'UK: Temporary Work Visa',
-    'France: Student Visa with Path to Work',
-    'New Zealand: Essential Skills Work Visa',
+    'UK: Skilled Worker Visa',
+    'USA: H1B Work Visa',
+    'New Zealand: Skilled Migrant Visa',
   ],
-  Low: [
-    'South Africa: Visit Visa',
-    'Ghana: Family Reunification Visa',
-    'Kenya: Tourism Visa',
-  ],
+  Low: ['Asylum', 'Family Sponsorship', 'Temporary Visit / Vacation'],
 }
 
-const visaAccessData = {
-  Nigeria: {
-    visaFree: ['Ghana', 'Benin', 'Senegal', 'Barbados'],
-    visaEasy: ['Kenya (e-visa)', 'Mauritius (visa on arrival)'],
-  },
-  Ghana: {
-    visaFree: ['Nigeria', 'Senegal', 'Kenya'],
-    visaEasy: ['Mauritius', 'Thailand (e-visa)'],
-  },
-  Kenya: {
-    visaFree: ['Uganda', 'Rwanda', 'Tanzania'],
-    visaEasy: ['Mauritius', 'Thailand (e-visa)'],
-  },
+const visaFreeCountries = {
+  Nigeria: ['Ghana', 'Kenya', 'Barbados', 'Fiji'],
+  India: ['Nepal', 'Bhutan', 'Maldives', 'Mauritius'],
+  // Add more countries as needed
 }
 
 export default function Results() {
-  const formData = JSON.parse(localStorage.getItem('assessment'))
+  const [result, setResult] = useState({})
+  const [score, setScore] = useState(0)
+  const [level, setLevel] = useState('Low')
+  const [visaFreeList, setVisaFreeList] = useState([])
 
-  const calculateEligibility = (data) => {
-    let score = 0
+  useEffect(() => {
+    const data = JSON.parse(localStorage.getItem('assessment'))
+    setResult(data || {})
 
-    if (parseInt(data.age) >= 18 && parseInt(data.age) <= 35) score += 30
-    else if (parseInt(data.age) <= 45) score += 20
+    // Simple scoring logic → can be expanded
+    let tempScore = 0
+    if (data?.education === "Master's" || data?.education === 'PhD') tempScore += 3
+    else if (data?.education === "Bachelor's") tempScore += 2
+    else tempScore += 1
 
-    switch (data.education) {
-      case 'PhD': score += 40; break
-      case "Master's": score += 30; break
-      case "Bachelor's": score += 20; break
-      case 'High School': score += 10; break
-      default: break
+    if (parseInt(data?.age) >= 25 && parseInt(data?.age) <= 35) tempScore += 3
+    else if (parseInt(data?.age) < 25) tempScore += 2
+    else tempScore += 1
+
+    setScore(tempScore)
+
+    if (tempScore >= 5) setLevel('High')
+    else if (tempScore >= 4) setLevel('Medium')
+    else setLevel('Low')
+
+    // Visa-free countries
+    if (data?.goal === 'Temporary Visit / Vacation') {
+      const list = visaFreeCountries[data?.countryOfCitizenship] || []
+      setVisaFreeList(list)
     }
+  }, [])
 
-    switch (data.goal) {
-      case 'Study': score += 20; break
-      case 'Work': score += 30; break
-      case 'Asylum': score += 15; break
-      case 'Family': score += 10; break
-      case 'Temporary Visit / Vacation': score += 5; break
-      default: break
-    }
-
-    return score
+  // 👉 If goal is Study → show SchoolResults instead
+  if (result?.goal === 'Study') {
+    return <SchoolResults />
   }
 
-  const score = calculateEligibility(formData)
-  let level = ''
-  if (score >= 80) level = 'High'
-  else if (score >= 50) level = 'Medium'
-  else level = 'Low'
-
-  const visaInfo = visaAccessData[formData.countryOfCitizenship]
-
   return (
-    <div className="max-w-xl mx-auto text-center space-y-6">
-      <h2 className="text-3xl font-bold text-green-700">Assessment Result</h2>
-      <p className="text-lg">Eligibility Score: <strong>{score}</strong></p>
-      <p className="text-lg">Eligibility Level: <strong>{level}</strong></p>
+    <div className="max-w-xl mx-auto p-6 space-y-6">
+      <h2 className="text-3xl font-bold text-blue-700 text-center mb-6">Your Results</h2>
 
-      {formData.goal === 'Temporary Visit / Vacation' && visaInfo ? (
-        <>
-          <h4 className="text-xl font-semibold mb-2">Visa-Free Destinations</h4>
-          <ul className="list-disc list-inside text-left max-w-md mx-auto mb-6">
-            {visaInfo.visaFree.map((country, index) => (
-              <li key={index}>{country}</li>
-            ))}
-          </ul>
+      <p className="text-lg">
+        <strong>Name:</strong> {result?.name}
+      </p>
+      <p className="text-lg">
+        <strong>Age:</strong> {result?.age}
+      </p>
+      <p className="text-lg">
+        <strong>Education:</strong> {result?.education}
+      </p>
+      <p className="text-lg">
+        <strong>Goal:</strong> {result?.goal}
+      </p>
+      <p className="text-lg">
+        <strong>Country of Citizenship:</strong> {result?.countryOfCitizenship}
+      </p>
 
-          <h4 className="text-xl font-semibold mb-2">Visa on Arrival / e-Visa Destinations</h4>
-          <ul className="list-disc list-inside text-left max-w-md mx-auto">
-            {visaInfo.visaEasy.map((country, index) => (
-              <li key={index}>{country}</li>
-            ))}
-          </ul>
-        </>
-      ) : (
-        <>
-          <h4 className="text-xl font-semibold mb-2">Recommended Pathways</h4>
-          <ul className="list-disc list-inside text-left max-w-md mx-auto">
+      {result?.goal === 'Temporary Visit / Vacation' && (
+        <div>
+          <h3 className="text-xl font-bold mt-6 mb-2">Visa-Free / Minimal Visa Countries:</h3>
+          {visaFreeList.length > 0 ? (
+            <ul className="list-disc list-inside">
+              {visaFreeList.map((country, index) => (
+                <li key={index}>{country}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No visa-free countries found for your citizenship.</p>
+          )}
+        </div>
+      )}
+
+      {result?.goal !== 'Temporary Visit / Vacation' && (
+        <div>
+          <h3 className="text-xl font-bold mt-6 mb-2">Eligibility Score: {score}</h3>
+          <h3 className="text-xl font-bold mb-2">Suggested Pathways ({level} Eligibility):</h3>
+          <ul className="list-disc list-inside">
             {recommendations[level].map((item, index) => (
               <li key={index}>
-                <Link to={`/pathway/${index}`} className="text-blue-600 hover:underline">
+                <Link
+                  to={`/pathway/${index}`}
+                  className="text-blue-600 hover:underline"
+                >
                   {item}
                 </Link>
               </li>
             ))}
           </ul>
-        </>
+        </div>
       )}
 
       <Link
         to="/"
         className="inline-block mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
       >
-        Start Over
+        Back to Assessment
       </Link>
     </div>
   )
