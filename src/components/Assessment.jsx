@@ -11,6 +11,7 @@ export default function Assessment() {
     age: '',
     education: '',
     goal: '',
+    countryOfCitizenship: '',
   })
 
   const handleChange = (e) => {
@@ -18,6 +19,18 @@ export default function Assessment() {
   }
 
   const handleSubmit = async () => {
+    if (
+      !formData.name ||
+      !formData.age ||
+      formData.age < 0 ||
+      !formData.education ||
+      !formData.goal ||
+      !formData.countryOfCitizenship
+    ) {
+      alert('Please fill in all fields with valid data.')
+      return
+    }
+
     const { data, error } = await supabase.from('assessments').insert([formData])
     if (error) {
       alert('Submission failed: ' + error.message)
@@ -83,8 +96,20 @@ export default function Assessment() {
           <option value="Work">Work</option>
           <option value="Asylum">Asylum</option>
           <option value="Family">Family Sponsorship</option>
-          <option value="Temporary Visit">Temporary Visit / Vacation</option>
+          <option value="Temporary Visit / Vacation">Temporary Visit / Vacation</option>
         </select>
+      </label>
+
+      <label className="block">
+        Country of Citizenship:
+        <input
+          type="text"
+          name="countryOfCitizenship"
+          value={formData.countryOfCitizenship}
+          onChange={handleChange}
+          placeholder="e.g. Nigeria"
+          className="block w-full mt-1 p-2 border rounded"
+        />
       </label>
 
       <button

@@ -20,6 +20,21 @@ const recommendations = {
   ],
 }
 
+const visaAccessData = {
+  Nigeria: {
+    visaFree: ['Ghana', 'Benin', 'Senegal', 'Barbados'],
+    visaEasy: ['Kenya (e-visa)', 'Mauritius (visa on arrival)'],
+  },
+  Ghana: {
+    visaFree: ['Nigeria', 'Senegal', 'Kenya'],
+    visaEasy: ['Mauritius', 'Thailand (e-visa)'],
+  },
+  Kenya: {
+    visaFree: ['Uganda', 'Rwanda', 'Tanzania'],
+    visaEasy: ['Mauritius', 'Thailand (e-visa)'],
+  },
+}
+
 export default function Results() {
   const formData = JSON.parse(localStorage.getItem('assessment'))
 
@@ -42,7 +57,7 @@ export default function Results() {
       case 'Work': score += 30; break
       case 'Asylum': score += 15; break
       case 'Family': score += 10; break
-      case 'Temporary Visit': score += 5; break
+      case 'Temporary Visit / Vacation': score += 5; break
       default: break
     }
 
@@ -55,24 +70,44 @@ export default function Results() {
   else if (score >= 50) level = 'Medium'
   else level = 'Low'
 
+  const visaInfo = visaAccessData[formData.countryOfCitizenship]
+
   return (
     <div className="max-w-xl mx-auto text-center space-y-6">
       <h2 className="text-3xl font-bold text-green-700">Assessment Result</h2>
       <p className="text-lg">Eligibility Score: <strong>{score}</strong></p>
       <p className="text-lg">Eligibility Level: <strong>{level}</strong></p>
 
-      <div>
-        <h4 className="text-xl font-semibold mb-2">Recommended Pathways</h4>
-        <ul className="list-disc list-inside text-left max-w-md mx-auto">
-          {recommendations[level].map((item, index) => (
-            <li key={index}>
-              <Link to={`/pathway/${index}`} className="text-blue-600 hover:underline">
-                {item}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {formData.goal === 'Temporary Visit / Vacation' && visaInfo ? (
+        <>
+          <h4 className="text-xl font-semibold mb-2">Visa-Free Destinations</h4>
+          <ul className="list-disc list-inside text-left max-w-md mx-auto mb-6">
+            {visaInfo.visaFree.map((country, index) => (
+              <li key={index}>{country}</li>
+            ))}
+          </ul>
+
+          <h4 className="text-xl font-semibold mb-2">Visa on Arrival / e-Visa Destinations</h4>
+          <ul className="list-disc list-inside text-left max-w-md mx-auto">
+            {visaInfo.visaEasy.map((country, index) => (
+              <li key={index}>{country}</li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <>
+          <h4 className="text-xl font-semibold mb-2">Recommended Pathways</h4>
+          <ul className="list-disc list-inside text-left max-w-md mx-auto">
+            {recommendations[level].map((item, index) => (
+              <li key={index}>
+                <Link to={`/pathway/${index}`} className="text-blue-600 hover:underline">
+                  {item}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
 
       <Link
         to="/"
