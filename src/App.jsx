@@ -8,6 +8,8 @@ import AdminPanel from './components/AdminPanel'
 import SignIn from './components/SignIn'
 import Navbar from './components/Navbar'
 import SignUp from './components/SignUp'
+import SchoolInfo from './components/SchoolInfo'
+
 
 
 function App() {
@@ -32,6 +34,8 @@ function App() {
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/signin" element={<SignIn />} />
 	    <Route path="/signup" element={<SignUp />} />
+	    <Route path="/school-info/:schoolName" element={<SchoolInfo />} />
+
 
           </Routes>
         </main>

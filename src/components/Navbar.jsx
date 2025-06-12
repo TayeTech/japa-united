@@ -9,15 +9,9 @@ export default function Navbar() {
 
   useEffect(() => {
     getUser()
-
-    // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null)
     })
-
-    return () => {
-      authListener.subscription.unsubscribe()
-    }
   }, [])
 
   const getUser = async () => {
@@ -32,31 +26,32 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="flex justify-between items-center px-6 py-4 bg-gray-100 shadow mb-6">
-      <div className="text-xl font-bold text-blue-700">
-        <Link to="/">Japa United</Link>
-      </div>
+    <header className="flex justify-between items-center p-6 bg-white shadow-md mb-6 border-b border-gray-200">
+      <h1 className="text-xl font-bold text-blue-700">Japa United</h1>
+      <nav className="space-x-4 text-sm font-medium">
+        <Link to="/">Assessment</Link>
+        <Link to="/results">Results</Link>
+        <Link to="/admin">Admin</Link>
 
-      <div className="flex space-x-6 items-center">
-        <Link to="/" className="text-blue-700 hover:underline">Home</Link>
-        <Link to="/admin" className="text-blue-700 hover:underline">Admin Panel</Link>
-
-        {!user && (
+        {user && (
           <>
-            <Link to="/signin" className="text-blue-700 hover:underline">Sign In</Link>
-            <Link to="/signup" className="text-blue-700 hover:underline">Sign Up</Link>
+            <Link to="/dashboard">Dashboard</Link>
+            <button
+              onClick={handleSignOut}
+              className="text-red-600 hover:underline"
+            >
+              Sign Out
+            </button>
           </>
         )}
 
-        {user && (
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Sign Out
-          </button>
+        {!user && (
+          <>
+            <Link to="/signin">Sign In</Link>
+            <Link to="/signup">Sign Up</Link>
+          </>
         )}
-      </div>
-    </nav>
+      </nav>
+    </header>
   )
 }
